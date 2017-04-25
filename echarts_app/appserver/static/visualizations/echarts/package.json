@@ -1,0 +1,22 @@
+{
+  "name": "echarts",
+  "version": "1.0.0",
+  "description": "echats visualization for splunk",
+  "main": "visualization.js",
+  "scripts": {
+    "build": "$SPLUNK_HOME/bin/splunk cmd node ./node_modules/webpack/bin/webpack.js",
+    "devbuild": "$SPLUNK_HOME/bin/splunk cmd node ./node_modules/webpack/bin/webpack.js --progress",
+    "watch": "$SPLUNK_HOME/bin/splunk cmd node ./node_modules/webpack/bin/webpack.js -d --watch --progress"
+  },
+  "author": "Gang Tao",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^1.12.6"
+  },
+  "dependencies": {
+    "d3": "^4.8.0",
+    "echarts": "^3.5.3",
+    "jquery": "^2.2.0",
+    "underscore": "^1.8.3"
+  }
+}
