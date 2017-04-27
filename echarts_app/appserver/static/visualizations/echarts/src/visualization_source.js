@@ -58,12 +58,11 @@ define([
                         top: 'middle',
                         orient: 'vertical'
                     },
+                    dataZoom: [],
                     tooltip: {},
                     legend: {
                         data: []
                     },
-                    xAxis: {},
-                    yAxis: {},
                     series: []
                 };
 
@@ -79,7 +78,6 @@ define([
                 }
 
                 var myChart = echarts.init(this.el);
-
                 // 使用刚指定的配置项和数据显示图表。
                 myChart.setOption(data);
             },
@@ -110,6 +108,9 @@ define([
             },
 
             _buildXYOption: function(data, config, option) {
+                option.xAxis = {};
+                option.yAxis = {};
+
                 var xBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.xBinding"]);
                 var xType = config["display.visualizations.custom.echarts_app.echarts.xAxisType"];
                 var xShow = (config["display.visualizations.custom.echarts_app.echarts.xAxisShow"] == "true");
@@ -117,6 +118,9 @@ define([
                 var yBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.yBinding"]);
                 var yType = config["display.visualizations.custom.echarts_app.echarts.yAxisType"];
                 var yShow = (config["display.visualizations.custom.echarts_app.echarts.yAxisShow"] == "true");
+
+                var xZoom = (config["display.visualizations.custom.echarts_app.echarts.xAxisZoom"] == "true");
+                var yZoom = (config["display.visualizations.custom.echarts_app.echarts.yAxisZoom"] == "true");
 
                 var dataBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataBinding"]);
                 var dataType = config["display.visualizations.custom.echarts_app.echarts.dataType"];
@@ -131,17 +135,37 @@ define([
                     .interpolate(d3.interpolateHcl)
                     .range([d3.rgb("#fff"), d3.rgb('#000')]);
 
-                if (xBinding.length > 0) {
+                if (xBinding.length > 0 && xType == "category") {
                     option.xAxis.data = data.columns[xBinding[0]];
-                    option.xAxis.type = xType;
-                    option.xAxis.show = xShow
+                }
+                option.xAxis.type = xType;
+                option.xAxis.show = xShow
+
+                if (yBinding.length > 0 && yType == "category" ) {
+                    option.yAxis.data = data.columns[yBinding[0]];
+                }
+                option.yAxis.type = yType;
+                option.yAxis.show = yShow;
+
+                if ( xZoom ) {
+                    option.dataZoom.push({
+                        type: 'slider',
+                        show: true,
+                        xAxisIndex: [0],
+                        start: 1,
+                        end: 10
+                    });
                 }
 
-                if (yBinding.length > 0) {
-                    option.yAxis.data = data.columns[yBinding[0]];
-                    option.yAxis.type = yType;
-                    option.yAxis.show = yShow
-
+                if ( yZoom ) {
+                    option.dataZoom.push({
+                        type: 'slider',
+                        show: true,
+                        yAxisIndex: [0],
+                        left: '93%',
+                        start: 1,
+                        end: 10
+                    });
                 }
 
                 if (dataType == "scatter") {
@@ -152,11 +176,10 @@ define([
                     var i = 0,
                         length = data.columns[xBinding[0]].length;
                     for (; i < length; i++) {
-                        var point = [];
-                        dataBinding.map(function(bindIndex) {
-                            point.push(data.columns[bindIndex][i]);
+                        var points = dataBinding.map(function(bindIndex) {
+                            return data.columns[bindIndex][i];
                         });
-                        col.data.push(point);
+                        col.data.push(points);
                     }
 
                     if (dataLabelBinding.length > 0) {
@@ -171,6 +194,7 @@ define([
                         };
                     }
 
+                    //TODO : use visualmap for size/color binding
                     if (dataSizeBinding.length > 0) {
                         //TODO : decide max size based on max data
                         col.symbolSize = function(data) {
@@ -186,7 +210,6 @@ define([
                             colorScale = linearColor.domain([d3.min(data.columns[dataColorBinding[0]]), d3.max(data.columns[dataColorBinding[0]])]);
                         } else {
                             colorScale = categoricalColor;
-
                         }
 
                         col.itemStyle = {
@@ -224,7 +247,14 @@ define([
                         }
                         option.series.push(col);
                     });
+
                     //TODO : handle data size and color binding
+                }
+
+                // TODO : pie chart is not applied for xy chart
+                if (dataType == "pie") {
+                    delete option["xAxis"];
+                    delete option["yAxis"];
                 }
 
                 console.log(option);

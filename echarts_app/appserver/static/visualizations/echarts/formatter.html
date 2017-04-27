@@ -5,15 +5,19 @@
     </splunk-control-group>
     <splunk-control-group label="X-Axis Type">
         <splunk-select name="{{VIZ_NAMESPACE}}.xAxisType" value="category">
-            <option value="value">Value</option>
             <option value="category">Category</option>
-            <option value="time">Time</option>
+            <option value="value">Value</option>
             <option value="log">Log</option>
-            <option value="none">None</option>
         </splunk-select>
     </splunk-control-group>
     <splunk-control-group label="X-Axis Show">
         <splunk-radio-input name="{{VIZ_NAMESPACE}}.xAxisShow" value="true">
+            <option value="true">True</option>
+            <option value="false">False</option>
+        </splunk-radio-input>
+    </splunk-control-group>
+    <splunk-control-group label="X-Axis Zoom">
+        <splunk-radio-input name="{{VIZ_NAMESPACE}}.xAxisZoom" value="false">
             <option value="true">True</option>
             <option value="false">False</option>
         </splunk-radio-input>
@@ -23,16 +27,20 @@
         </splunk-text-input>
     </splunk-control-group>
     <splunk-control-group label="Y-Axis Type">
-        <splunk-select name="{{VIZ_NAMESPACE}}.yAxisType" value="none">
-            <option value="value">Value</option>
+        <splunk-select name="{{VIZ_NAMESPACE}}.yAxisType" value="value">
             <option value="category">Category</option>
-            <option value="time">Time</option>
+            <option value="value">Value</option>
             <option value="log">Log</option>
-            <option value="none">None</option>
         </splunk-select>
     </splunk-control-group>
     <splunk-control-group label="Y-Axis Show">
         <splunk-radio-input name="{{VIZ_NAMESPACE}}.yAxisShow" value="true">
+            <option value="true">True</option>
+            <option value="false">False</option>
+        </splunk-radio-input>
+    </splunk-control-group>
+    <splunk-control-group label="Y-Axis Zoom">
+        <splunk-radio-input name="{{VIZ_NAMESPACE}}.yAxisZoom" value="false">
             <option value="true">True</option>
             <option value="false">False</option>
         </splunk-radio-input>
