@@ -1,14 +1,24 @@
+<form class="splunk-formatter-section" section-label="Coordinates">
+    <splunk-control-group label="Coordinates Type">
+        <splunk-radio-input name="{{VIZ_NAMESPACE}}.coordinatesType" value="xy">
+            <option value="xy">X-Y</option>
+            <option value="geo">Geomap</option>
+            <option value="polar">Polar</option>
+        </splunk-radio-input>
+    </splunk-control-group>
+</form>
+
 <form class="splunk-formatter-section" section-label="X-Y Axis">
     <splunk-control-group label="X-Axis Binding">
         <splunk-text-input name="{{VIZ_NAMESPACE}}.xBinding" value="0">
         </splunk-text-input>
     </splunk-control-group>
     <splunk-control-group label="X-Axis Type">
-        <splunk-select name="{{VIZ_NAMESPACE}}.xAxisType" value="category">
+        <splunk-radio-input name="{{VIZ_NAMESPACE}}.xAxisType" value="category">
             <option value="category">Category</option>
             <option value="value">Value</option>
             <option value="log">Log</option>
-        </splunk-select>
+        </splunk-radio-input>
     </splunk-control-group>
     <splunk-control-group label="X-Axis Show">
         <splunk-radio-input name="{{VIZ_NAMESPACE}}.xAxisShow" value="true">
@@ -27,11 +37,11 @@
         </splunk-text-input>
     </splunk-control-group>
     <splunk-control-group label="Y-Axis Type">
-        <splunk-select name="{{VIZ_NAMESPACE}}.yAxisType" value="value">
+        <splunk-radio-input name="{{VIZ_NAMESPACE}}.yAxisType" value="value">
             <option value="category">Category</option>
             <option value="value">Value</option>
             <option value="log">Log</option>
-        </splunk-select>
+        </splunk-radio-input>
     </splunk-control-group>
     <splunk-control-group label="Y-Axis Show">
         <splunk-radio-input name="{{VIZ_NAMESPACE}}.yAxisShow" value="true">
@@ -46,6 +56,25 @@
         </splunk-radio-input>
     </splunk-control-group>
 </form>
+
+<form class="splunk-formatter-section" section-label="Geomap">
+    <splunk-control-group label="Map Type">
+        <splunk-select name="{{VIZ_NAMESPACE}}.mapType" value="world">
+            <option value="world">Wrold Map</option>
+            <option value="china">China</option>
+            <option value="usa">USA</option>
+        </splunk-select>
+    </splunk-control-group>
+    <splunk-control-group label="Geo Naming Binding">
+        <splunk-text-input name="{{VIZ_NAMESPACE}}.geoNameBinding" value="">
+        </splunk-text-input>
+    </splunk-control-group>
+    <splunk-control-group label="Longitude and Latitude Binding">
+        <splunk-text-input name="{{VIZ_NAMESPACE}}.locationBinding" value="">
+        </splunk-text-input>
+    </splunk-control-group>
+</form>
+
 <form class="splunk-formatter-section" section-label="Data Series">
     <splunk-control-group label="Data Binding">
         <splunk-text-input name="{{VIZ_NAMESPACE}}.dataBinding" value="0">
@@ -57,6 +86,7 @@
             <option value="line">Line</option>
             <option value="pie">Pie</option>
             <option value="scatter">Scatter</option>
+            <option value="map">Map</option>
         </splunk-select>
     </splunk-control-group>
     <splunk-control-group label="Data Label Binding">
@@ -76,5 +106,20 @@
             <option value="true">True</option>
             <option value="false">False</option>
         </splunk-radio-input>
+    </splunk-control-group>
+</form>
+
+<form class="splunk-formatter-section" section-label="Settings">
+    <splunk-control-group label="Color High">
+        <splunk-color-picker name="{{VIZ_NAMESPACE}}.colorHigh" value="#d93f3c">
+        </splunk-select>
+    </splunk-control-group>
+    <splunk-control-group label="Color Medium">
+        <splunk-color-picker name="{{VIZ_NAMESPACE}}.colorMedium" value="#f7bc38">
+        </splunk-select>
+    </splunk-control-group>
+    <splunk-control-group label="Color Low">
+        <splunk-color-picker name="{{VIZ_NAMESPACE}}.colorLow" value="#65a637">
+        </splunk-select>
     </splunk-control-group>
 </form>
