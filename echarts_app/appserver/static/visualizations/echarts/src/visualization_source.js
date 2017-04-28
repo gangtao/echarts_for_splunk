@@ -59,6 +59,7 @@ define([
                         orient: 'vertical'
                     },
                     dataZoom: [],
+                    visualMap: [],
                     tooltip: {},
                     legend: {
                         data: []
@@ -135,19 +136,22 @@ define([
                     .interpolate(d3.interpolateHcl)
                     .range([d3.rgb("#fff"), d3.rgb('#000')]);
 
-                if (xBinding.length > 0 && xType == "category") {
+                if (xBinding.length > 0) {
                     option.xAxis.data = data.columns[xBinding[0]];
+                    option.xAxis.name = data.fields[xBinding[0]].name;
+                    option.xAxis.nameLocation = "middle";
                 }
                 option.xAxis.type = xType;
-                option.xAxis.show = xShow
+                option.xAxis.show = xShow;
 
-                if (yBinding.length > 0 && yType == "category" ) {
+                if (yBinding.length > 0) {
                     option.yAxis.data = data.columns[yBinding[0]];
+                    option.yAxis.name = data.fields[yBinding[0]].name;
                 }
                 option.yAxis.type = yType;
                 option.yAxis.show = yShow;
 
-                if ( xZoom ) {
+                if (xZoom) {
                     option.dataZoom.push({
                         type: 'slider',
                         show: true,
@@ -157,7 +161,7 @@ define([
                     });
                 }
 
-                if ( yZoom ) {
+                if (yZoom) {
                     option.dataZoom.push({
                         type: 'slider',
                         show: true,
@@ -193,34 +197,62 @@ define([
                             }
                         };
                     }
-
-                    //TODO : use visualmap for size/color binding
                     if (dataSizeBinding.length > 0) {
-                        //TODO : decide max size based on max data
-                        col.symbolSize = function(data) {
-                            return Math.sqrt(parseFloat(data[dataSizeBinding[0]])) * 10;
-                        };
+                        var map = {};
+                        map.min = parseFloat(d3.min(data.columns[dataSizeBinding[0]]));
+                        map.max = parseFloat(d3.max(data.columns[dataSizeBinding[0]]));
+                        map.range = [map.min, map.max];
+                        map.calculable = true;
+                        map.realtime = true;
+                        map.dimension = dataSizeBinding[0];
+                        map.inRange = { symbolSize: [30, 100] };
+                        map.left = "right";
+                        map.top = "top";
+                        option.visualMap.push(map);
                     }
 
                     if (dataColorBinding.length > 0) {
-                        var colorScale = undefined;
-
-                        if ($.isNumeric(data.columns[dataColorBinding[0]][0])) {
-
-                            colorScale = linearColor.domain([d3.min(data.columns[dataColorBinding[0]]), d3.max(data.columns[dataColorBinding[0]])]);
+                        if ($.isNumeric(data.columns[
+                                dataColorBinding[0]][0])) {
+                            var map = {};
+                            map.dimension = dataColorBinding[0];
+                            map.min = parseFloat(d3.min(data.columns[dataColorBinding[0]]));
+                            map.max = parseFloat(d3.max(data.columns[dataColorBinding[0]]));
+                            map.range = [map.min, map.max];
+                            map.calculable = true;
+                            map.realtime = true;
+                            map.inRange = { color: ['#ccc', '#888', '#222'] };
+                            map.left = "right";
+                            map.top = "bottom";
+                            option.visualMap.push(map);
                         } else {
-                            colorScale = categoricalColor;
-                        }
-
-                        col.itemStyle = {
-                            normal: {
-                                color: function(param) {
-                                    return colorScale(param.data[dataColorBinding[0]]);
+                            if (false) {
+                                colorScale = categoricalColor;
+                                col.itemStyle = {
+                                    normal: {
+                                        color: function(param) {
+                                            return colorScale(param.data[dataColorBinding[0]]);
+                                        }
+                                    }
+                                };
+                            } else {
+                                function onlyUnique(value, index, self) {
+                                    return self.indexOf(value) === index;
                                 }
-                            }
-                        };
-                    }
 
+                                var map = {};
+                                map.dimension = dataColorBinding[0];
+                                map.categories = data.columns[dataColorBinding[0]].filter(onlyUnique);
+                                map.inRange = { color: d3.schemeCategory10 };
+                                map.left = "right";
+                                map.top = "bottom";
+                                option.visualMap.push(map);
+                            }
+
+                            //TODO : no legend here 
+                            //use visual map will cause some strange conflict
+                        }
+                    }
                     option.series.push(col);
                 } else {
                     dataBinding.map(function(bindIndex) {
