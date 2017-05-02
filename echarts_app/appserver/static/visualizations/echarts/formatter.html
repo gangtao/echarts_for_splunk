@@ -1,9 +1,10 @@
 <form class="splunk-formatter-section" section-label="Coordinates">
     <splunk-control-group label="Coordinates Type">
-        <splunk-radio-input name="{{VIZ_NAMESPACE}}.coordinatesType" value="xy">
+        <splunk-select name="{{VIZ_NAMESPACE}}.coordinatesType" value="xy">
             <option value="xy">X-Y</option>
             <option value="geo">Geomap</option>
             <option value="polar">Polar</option>
+            <option value="single">Single Axis</option>
         </splunk-radio-input>
     </splunk-control-group>
 </form>
@@ -75,11 +76,14 @@
     </splunk-control-group>
 </form>
 
-<form class="splunk-formatter-section" section-label="Data Series">
-    <splunk-control-group label="Data Binding">
-        <splunk-text-input name="{{VIZ_NAMESPACE}}.dataBinding" value="0">
+<form class="splunk-formatter-section" section-label="Single Axis">
+    <splunk-control-group label="Axis Binding">
+        <splunk-text-input name="{{VIZ_NAMESPACE}}.axisBinding" value="">
         </splunk-text-input>
     </splunk-control-group>
+</form>
+
+<form class="splunk-formatter-section" section-label="Data Series">
     <splunk-control-group label="Data Type">
         <splunk-select name="{{VIZ_NAMESPACE}}.dataType" value="bar">
             <option value="bar">Bar</option>
@@ -121,5 +125,13 @@
     <splunk-control-group label="Color Low">
         <splunk-color-picker name="{{VIZ_NAMESPACE}}.colorLow" value="#65a637">
         </splunk-select>
+    </splunk-control-group>
+    <splunk-control-group label="Data Size Max">
+        <splunk-text-input name="{{VIZ_NAMESPACE}}.dataSizeMax" value="30">
+        </splunk-text-input>
+    </splunk-control-group>
+    <splunk-control-group label="Data Size Min">
+        <splunk-text-input name="{{VIZ_NAMESPACE}}.dataSizeMin" value="5">
+        </splunk-text-input>
     </splunk-control-group>
 </form>

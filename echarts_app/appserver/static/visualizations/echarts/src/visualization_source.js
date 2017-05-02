@@ -68,6 +68,8 @@ define([
                     return this._buildXYOption(data, config, option);
                 } else if (coordinatesType == "geo") {
                     return this._buildGeoOption(data, config, option);
+                } else if (coordinatesType == "single") {
+                    return this._buildSingleAxisOption(data, config, option);
                 } else {
                     console.log("Coordinates Not Supported!");
                 }
@@ -129,17 +131,12 @@ define([
                 var xZoom = (config["display.visualizations.custom.echarts_app.echarts.xAxisZoom"] == "true");
                 var yZoom = (config["display.visualizations.custom.echarts_app.echarts.yAxisZoom"] == "true");
 
-                var dataBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataBinding"]);
                 var dataType = config["display.visualizations.custom.echarts_app.echarts.dataType"];
                 var dataLabelBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataLabelBinding"]);
                 var dataSizeBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataSizeBinding"]);
                 var dataColorBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataColorBinding"]);
 
                 var showArea = config["display.visualizations.custom.echarts_app.echarts.showArea"];
-
-                var colorHigh = config["display.visualizations.custom.echarts_app.echarts.colorHigh"];
-                var colorMedium = config["display.visualizations.custom.echarts_app.echarts.colorMedium"];
-                var colorLow = config["display.visualizations.custom.echarts_app.echarts.colorLow"];
 
                 if (xBinding.length > 0) {
                     option.xAxis.data = data.columns[xBinding[0]];
@@ -181,87 +178,87 @@ define([
                     var col = {};
                     col.data = [];
                     col.type = dataType;
-                    // for scatter case, x,y must bing to some col
+
                     var i = 0,
                         length = data.columns[xBinding[0]].length;
+
+                    var dataLabelBindingIndex = undefined;
+                    var dataSizeBindingIndex = undefined;
+                    var dataColorBindingIndex = undefined;
+
+                    //Caculating binding indexes
+                    var index = 2;
+                    if (dataLabelBinding.length > 0) {
+                        dataLabelBindingIndex = index;
+                        index = index + 1;
+                    }
+                    if (dataSizeBinding.length > 0) {
+                        dataSizeBindingIndex = index;
+                        index = index + 1;
+                    }
+                    if (dataColorBinding.length > 0) {
+                        dataColorBindingIndex = index;
+                        index = index + 1;
+                    }
+
+                    // Make data points
                     for (; i < length; i++) {
-                        var points = dataBinding.map(function(bindIndex) {
-                            return data.columns[bindIndex][i];
-                        });
+                        var points = [];
+                        points.push(data.columns[xBinding[0]][i]);
+                        points.push(data.columns[yBinding[0]][i]);
+
+                        if (dataLabelBinding.length > 0) {
+                            points.push(data.columns[dataLabelBinding[0]][i]);
+                        }
+
+                        if (dataSizeBinding.length > 0) {
+                            points.push(data.columns[dataSizeBinding[0]][i]);
+                        }
+
+                        if (dataColorBinding.length > 0) {
+                            points.push(data.columns[dataColorBinding[0]][i]);
+                        }
+
                         col.data.push(points);
                     }
 
                     if (dataLabelBinding.length > 0) {
-                        col.label = {
-                            emphasis: {
-                                show: true,
-                                formatter: function(param) {
-                                    return param.data[dataLabelBinding[0]];
-                                },
-                                position: 'top'
-                            }
-                        };
+                        this._bindLabel(dataLabelBindingIndex, col);
                     }
 
                     if (dataSizeBinding.length > 0) {
-                        var map = {};
-                        map.min = d3.min(data.columns[dataSizeBinding[0]].map(function(item) {
-                            return parseFloat(item);
-                        }));
-                        map.max = d3.max(data.columns[dataSizeBinding[0]].map(function(item) {
-                            return parseFloat(item);
-                        }));
-                        map.range = [map.min, map.max];
-                        map.calculable = true;
-                        map.realtime = true;
-                        map.dimension = dataSizeBinding[0];
-                        map.inRange = { symbolSize: [30, 100] };
-                        map.left = "right";
-                        map.top = "top";
-                        option.visualMap.push(map);
+                        this._bindSize(dataSizeBindingIndex, data.columns[dataSizeBinding[0]], option, config);
                     }
 
                     if (dataColorBinding.length > 0) {
-                        if ($.isNumeric(data.columns[
-                                dataColorBinding[0]][0])) {
-                            var map = {};
-                            map.dimension = dataColorBinding[0];
-                            map.min = d3.min(data.columns[dataColorBinding[0]].map(function(item) {
-                                return parseFloat(item);
-                            }));
-                            map.max = d3.max(data.columns[dataColorBinding[0]].map(function(item) {
-                                return parseFloat(item);
-                            }));
-                            map.range = [map.min, map.max];
-                            map.calculable = true;
-                            map.realtime = true;
-                            map.inRange = { color: [colorLow, colorMedium, colorHigh] };
-                            map.left = "right";
-                            map.top = "bottom";
-                            option.visualMap.push(map);
-                        } else {
-                            var map = {};
-                            map.dimension = dataColorBinding[0];
-                            map.categories = data.columns[dataColorBinding[0]].filter(function(value, index, self) {
-                                return self.indexOf(value) === index;
-                            });
-                            map.inRange = { color: d3.schemeCategory10 };
-                            map.left = "right";
-                            map.top = "bottom";
-                            option.visualMap.push(map);
-                        }
+                        this._bindColor(dataColorBindingIndex, data.columns[dataColorBinding[0]], option, config);
                     }
                     option.series.push(col);
+
                 } else {
-                    dataBinding.map(function(bindIndex) {
+                    // for bar and line
+                    if (xType == "category" && yType == "category") {
+                        console.log("x and y are both category which is not supported now!");
+                        return;
+                    }
+
+                    var valueBindAxis = undefined;
+                    if (xType != "category") {
+                        valueBindAxis = xBinding;
+                    } else {
+                        valueBindAxis = yBinding;
+                    }
+
+                    option.legend = {};
+                    option.legend.data = [];
+
+                    valueBindAxis.map(function(bindIndex) {
                         var col = {};
                         col.name = [data.fields[bindIndex].name];
                         col.type = dataType;
                         if (showArea == "true") {
                             col.areaStyle = { normal: {} };
                         }
-                        option.legend = {};
-                        option.legend.data = [];
                         option.legend.data.push({ "name": data.fields[bindIndex].name });
 
                         if (dataLabelBinding.length > 0) {
@@ -282,13 +279,6 @@ define([
 
                     //TODO : handle data size and color binding
                 }
-
-                // TODO : pie chart is not applied for xy chart
-                if (dataType == "pie") {
-                    delete option["xAxis"];
-                    delete option["yAxis"];
-                }
-
                 //console.log(option);
                 return option;
             },
@@ -296,7 +286,6 @@ define([
             _buildGeoOption: function(data, config, option) {
                 var mapType = config["display.visualizations.custom.echarts_app.echarts.mapType"];
 
-                var dataBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataBinding"]);
                 var dataType = config["display.visualizations.custom.echarts_app.echarts.dataType"];
                 var dataLabelBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataLabelBinding"]);
                 var dataSizeBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataSizeBinding"]);
@@ -346,118 +335,242 @@ define([
                 }
 
                 if (dataType == "scatter") {
+                    if (locationBinding.length != 2) {
+                        console.log("scatter on geo need longtitue and latitude bindings");
+                        return option;
+                    }
                     option.geo = { "map": map, roam: true };
                     var col = {};
                     col.data = [];
                     col.type = dataType;
                     col.coordinateSystem = "geo";
 
+                    var dataSizeBindingIndex = undefined;
+                    var dataColorBindingIndex = undefined;
+
+                    //Caculating binding indexes, default already bind to lang/lat of locationBinding
+                    var index = 2;
+                    if (dataSizeBinding.length > 0) {
+                        dataSizeBindingIndex = index;
+                        index = index + 1;
+                    }
+                    if (dataColorBinding.length > 0) {
+                        dataColorBindingIndex = index;
+                        index = index + 1;
+                    }
+
                     var i = 0,
-                        length = data.columns[dataBinding[0]].length;
+                        length = data.columns[locationBinding[0]].length;
                     for (; i < length; i++) {
                         var location = [data.columns[locationBinding[0]][i], data.columns[locationBinding[1]][i]];
-                        var values = dataBinding.map(function(bindIndex) {
-                            return data.columns[bindIndex][i];
-                        });
+                        var values = [];
+                        if (dataSizeBinding.length > 0) {
+                            values.push(data.columns[dataSizeBinding[0]][i]);
+                        }
+
+                        if (dataColorBinding.length > 0) {
+                            values.push(data.columns[dataColorBinding[0]][i]);
+                        }
 
                         var item = location.concat(values);
                         col.data.push(item);
                     }
-                    option.series.push(col);
 
-                    // size binding and color binding code are duplicated, need refactory
                     if (dataSizeBinding.length > 0) {
-                        var map = {};
-                        map.min = d3.min(data.columns[dataSizeBinding[0]].map(function(item) {
-                            return parseFloat(item);
-                        }));
-                        map.max = d3.max(data.columns[dataSizeBinding[0]].map(function(item) {
-                            return parseFloat(item);
-                        }));
-                        map.range = [map.min, map.max];
-                        map.calculable = true;
-                        map.realtime = true;
-                        map.dimension = dataSizeBinding[0];
-                        map.inRange = { symbolSize: [30, 100] };
-                        map.left = "right";
-                        map.top = "top";
-                        option.visualMap.push(map);
+                        this._bindSize(dataSizeBindingIndex, data.columns[dataSizeBinding[0]], option, config);
                     }
 
                     if (dataColorBinding.length > 0) {
-                        if ($.isNumeric(data.columns[
-                                dataColorBinding[0]][0])) {
-                            var map = {};
-                            map.dimension = dataColorBinding[0];
-                            map.min = d3.min(data.columns[dataColorBinding[0]].map(function(item) {
-                                return parseFloat(item);
-                            }));
-                            map.max = d3.max(data.columns[dataColorBinding[0]].map(function(item) {
-                                return parseFloat(item);
-                            }));
-                            map.range = [map.min, map.max];
-                            map.calculable = true;
-                            map.realtime = true;
-                            map.inRange = { color: [colorLow, colorMedium, colorHigh] };
-                            map.left = "right";
-                            map.top = "bottom";
-                            option.visualMap.push(map);
-                        } else {
-                            var map = {};
-                            map.dimension = dataColorBinding[0];
-                            map.categories = data.columns[dataColorBinding[0]].filter(function(value, index, self) {
-                                return self.indexOf(value) === index;
-                            });
-                            map.inRange = { color: d3.schemeCategory10 };
-                            map.left = "right";
-                            map.top = "bottom";
-                            option.visualMap.push(map);
-                        }
+                        this._bindColor(dataColorBindingIndex, data.columns[dataColorBinding[0]], option, config);
                     }
 
+                    option.series.push(col);
                 } else {
                     // databinding 1 required
                     // geoname binding 1 required
 
-                    if (dataBinding.length != 1 || geoNameBinding.length != 1) {
-                        console.log("map type need 1 geoname binding and 1 data binding");
-                        return option;
-                    }
-
                     var col = {};
-                    col.name = data.fields[dataBinding[0]].name;
+                    col.name = data.fields[dataColorBinding[0]].name;
                     col.type = dataType; // map type here
                     col.map = map;
 
                     col.data = [];
                     col.roam = true;
+                    option.series.push(col);
+
+                    if (dataColorBinding.length != 1 || geoNameBinding.length != 1) {
+                        console.log("map type need 1 geoname binding and 1 color binding");
+                        return option;
+                    }
 
                     var i = 0,
-                        length = data.columns[dataBinding[0]].length;
+                        length = data.columns[dataColorBinding[0]].length;
 
                     for (; i < length; i++) {
                         var item = {};
                         item.name = data.columns[geoNameBinding[0]][i];
-                        item.value = parseFloat(data.columns[dataBinding[0]][i]);
+                        item.value = parseFloat(data.columns[dataColorBinding[0]][i]);
                         col.data.push(item);
                     }
-                    option.series.push(col);
 
-                    var vmap = {};
-                    vmap.min = d3.min(data.columns[dataBinding[0]].map(function(item) {
-                        return parseFloat(item);
-                    }));
-                    vmap.max = d3.max(data.columns[dataBinding[0]].map(function(item) {
-                        return parseFloat(item);
-                    }));
-                    vmap.calculable = true;
-                    vmap.text = ['High', 'Low'];
-                    vmap.color = [colorHigh, colorMedium, colorLow];
-                    vmap.left = "right";
-                    vmap.top = "bottom";
-                    option.visualMap.push(vmap);
+                    if (dataColorBinding.length > 0) {
+                        this._bindColor(0, data.columns[dataColorBinding[0]], option, config);
+                    }
                 }
                 return option;
+            },
+
+            _buildSingleAxisOption: function(data, config, option) {
+                var axisBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.axisBinding"]);
+                var dataType = config["display.visualizations.custom.echarts_app.echarts.dataType"];
+                var dataLabelBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataLabelBinding"]);
+                var dataSizeBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataSizeBinding"]);
+                var dataColorBinding = this._text2binding(config["display.visualizations.custom.echarts_app.echarts.dataColorBinding"]);
+
+                if (dataType == "pie") {
+                    option.legend = {};
+                    option.legend.data = data.columns[axisBinding[0]];
+
+                    if (dataColorBinding.length != 1) {
+                        return option;
+                    }
+
+                    var col = {};
+                    col.data = [];
+                    col.type = dataType;
+                    option.series.push(col);
+
+                    var i = 0,
+                        length = data.columns[axisBinding[0]].length;
+
+                    for (; i < length; i++) {
+                        var item = {};
+                        item.value = data.columns[dataColorBinding[0]][i];
+                        item.name = data.columns[axisBinding[0]][i]
+                        col.data.push(item);
+                    }
+
+                } else if (dataType == "scatter") {
+                    option.singleAxis = [];
+                    option.singleAxis.push({
+                        type: 'category',
+                        data: data.columns[axisBinding[0]]
+                    });
+
+                    var dataSizeBindingIndex = undefined;
+                    var dataColorBindingIndex = undefined;
+
+                    //Caculating binding indexes, default already bind to lang/lat of locationBinding
+                    var index = 0;
+                    if (dataSizeBinding.length > 0) {
+                        dataSizeBindingIndex = index;
+                        index = index + 1;
+                    }
+                    if (dataColorBinding.length > 0) {
+                        dataColorBindingIndex = index;
+                        index = index + 1;
+                    }
+
+                    var col = {};
+                    col.data = [];
+                    col.coordinateSystem = 'singleAxis';
+                    col.type = dataType;
+                    option.series.push(col);
+
+                    var i = 0,
+                        length = data.columns[axisBinding[0]].length;
+
+                    for (; i < length; i++) {
+                        var item = [];
+                        if (dataSizeBinding.length > 0) {
+                            item.push(parseFloat(data.columns[dataSizeBinding[0]][i]));
+                        }
+                        if (dataColorBinding.length > 0) {
+                            item.push(parseFloat(data.columns[dataColorBinding[0]][i]));
+                        }
+                        col.data.push(item);
+                    }
+
+                    if (dataSizeBinding.length > 0) {
+                        this._bindSize(dataSizeBindingIndex, data.columns[dataSizeBinding[0]], option, config);
+                    }
+
+                    if (dataColorBinding.length > 0) {
+                        this._bindColor(dataColorBindingIndex, data.columns[dataColorBinding[0]], option, config);
+                    }
+
+                } else {
+                    console.log("Single Axis only support Pie or Scatter");
+                }
+
+                return option;
+            },
+
+            _bindLabel: function(bindIndex, col) {
+                col.label = {
+                    emphasis: {
+                        show: true,
+                        formatter: function(param) {
+                            return param.data[bindIndex];
+                        },
+                        position: 'top'
+                    }
+                };
+            },
+
+            _bindSize: function(bindIndex, data, option, config) {
+                var sizeMax = parseInt(config["display.visualizations.custom.echarts_app.echarts.dataSizeMax"]);
+                var sizeMin = parseInt(config["display.visualizations.custom.echarts_app.echarts.dataSizeMin"]);
+
+                var map = {};
+                map.min = d3.min(data.map(function(item) {
+                    return parseFloat(item);
+                }));
+                map.max = d3.max(data.map(function(item) {
+                    return parseFloat(item);
+                }));
+                map.range = [map.min, map.max];
+                map.calculable = true;
+                map.realtime = true;
+                map.dimension = bindIndex;
+                map.inRange = { symbolSize: [sizeMin, sizeMax] };
+                map.left = "right";
+                map.top = "top";
+                option.visualMap.push(map);
+            },
+
+            _bindColor: function(bindIndex, data, option, config) {
+                var colorHigh = config["display.visualizations.custom.echarts_app.echarts.colorHigh"];
+                var colorMedium = config["display.visualizations.custom.echarts_app.echarts.colorMedium"];
+                var colorLow = config["display.visualizations.custom.echarts_app.echarts.colorLow"];
+
+                if ($.isNumeric(data[0])) {
+                    var map = {};
+                    map.dimension = bindIndex;
+                    map.min = d3.min(data.map(function(item) {
+                        return parseFloat(item);
+                    }));
+                    map.max = d3.max(data.map(function(item) {
+                        return parseFloat(item);
+                    }));
+                    map.range = [map.min, map.max];
+                    map.calculable = true;
+                    map.realtime = true;
+                    map.inRange = { color: [colorLow, colorMedium, colorHigh] };
+                    map.left = "right";
+                    map.top = "bottom";
+                    option.visualMap.push(map);
+                } else {
+                    var map = {};
+                    map.dimension = bindIndex;
+                    map.categories = data.filter(function(value, index, self) {
+                        return self.indexOf(value) === index;
+                    });
+                    map.inRange = { color: d3.schemeCategory10 };
+                    map.left = "right";
+                    map.top = "bottom";
+                    option.visualMap.push(map);
+                }
             }
         });
     });
