@@ -25,6 +25,7 @@ Sample data can be found in the echarts_app/samples folder, add those data into 
    * Single Axis -> Axis Binding = 0  (country)
    * Data Series -> Data Type = Pie
    * Data Series -> Data Color Binding = 1 (wine_servings)
+
 ![](https://static.oschina.net/uploads/space/2017/0502/114658_p5c6_1450051.png)
 
 #### Single Axis Scatter
@@ -37,6 +38,7 @@ Sample data can be found in the echarts_app/samples folder, add those data into 
    * Single Axis -> Axis Binding = 0  (country)
    * Data Series -> Data Type = Scatter
    * Data Series -> Data Color Binding = 1 (wine_servings)
+
 ![](https://static.oschina.net/uploads/space/2017/0502/120257_f5MC_1450051.png)
 
 #### Column Chart
