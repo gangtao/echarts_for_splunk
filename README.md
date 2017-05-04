@@ -12,7 +12,7 @@ npm run build
 ```
 
 ### Usage
-
+Sample data can be found in the echarts_app/samples folder, add those data into Splunk and try following visualizations.
 
 #### Pie
    * SPL
