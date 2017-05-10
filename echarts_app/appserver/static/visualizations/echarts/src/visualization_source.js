@@ -29,6 +29,8 @@ define([
                 // Save this.$el for convenience
                 this.$el = $(this.el);
                 // Initialization logic goes here
+                this._echarts = undefined;
+                this._data = undefined;
             },
 
             // Optionally implement to format data returned from search. 
@@ -84,11 +86,11 @@ define([
                     return;
                 }
 
-                console.log(data);
-                console.log(JSON.stringify(data));
-
-                var myChart = echarts.init(this.el);
-                myChart.setOption(data);
+                //console.log(data);
+                //console.log(JSON.stringify(data));
+                this._echarts = echarts.init(this.el);;
+                this._data = data;
+                this._echarts.setOption(this._data);
             },
 
             // Search data params
@@ -100,7 +102,9 @@ define([
             },
 
             // Override to respond to re-sizing events
-            reflow: function() {},
+            reflow: function() {
+                this._echarts.resize();
+            },
 
             // convert text to an array of index numbers
             _text2binding: function(text) {
